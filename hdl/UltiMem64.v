@@ -24,20 +24,29 @@ module UltiMem64(
                 input _ras,
                 input _cas,
                 input _we,
-                output [18:0]baddress,
+                output [20:0]baddress,
                 inout [7:0]bdata,
                 output _ce_ram,
+                output _ce_tag,
                 output _we_ram,
+                output _ub,
+                output _lb,
                 output [4:1]test
                );
 
 reg [7:0]address;
 
-assign _ce_ram =           (_cas | _ras);
+//assign _ce_ram =           (_cas | _ras);
+assign _ce_ram =           1;
+assign _ce_tag =           (_cas | _ras);
 assign _we_ram =           _we;
-assign baddress[18:0] =    {3'b0, maddress, address};
-assign bdata =             (!_ce_ram & !_we_ram ? data : 8'bz);  // RAM selected and we're writing, else bz
-assign data =              (!_ce_ram & _we_ram ? bdata : 8'bz);  // RAM selected and we're reading, else bz
+assign baddress[20:0] =    {5'b0, maddress, address};
+assign bdata =             ((!_ce_ram | !_ce_tag) & !_we_ram ? data : 8'bz);  // RAM selected and we're writing, else bz
+assign data =              ((!_ce_ram | !_ce_tag) & _we_ram ? bdata : 8'bz);  // RAM selected and we're reading, else bz
+assign _ub =               1;
+assign _lb =               0;
+//assign _lb =               1;
+//assign _ce_tag =           1;
 
 // bit 0 is bit 6.
 // bit 1 is bit 1.

@@ -178,3 +178,4 @@ archive
 *.err
 _xmsgs
 /hdl/iseconfig
+/hdl/_pace.ucf
