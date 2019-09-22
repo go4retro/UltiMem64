@@ -46,18 +46,22 @@ NET "data<4>"  LOC = "P29"  ;
 NET "data<5>"  LOC = "P30"  ; 
 NET "data<6>"  LOC = "P17"  ; 
 NET "data<7>"  LOC = "P15"  ; 
-NET "maddress<0>"  LOC = "P55"  ;
+NET "maddress<0>"  LOC = "P55"  ; 
 NET "maddress<1>"  LOC = "P19"  ; 
 NET "maddress<2>"  LOC = "P18"  ; 
 NET "maddress<3>"  LOC = "P14"  ; 
 NET "maddress<4>"  LOC = "P63"  ; 
 NET "maddress<5>"  LOC = "P58"  ; 
-NET "maddress<6>"  LOC = "P20"  ;
+NET "maddress<6>"  LOC = "P20"  ; 
 NET "maddress<7>"  LOC = "P10"  ; 
 NET "test<1>"  LOC = "p50"  ; 
 NET "test<2>"  LOC = "p49"  ; 
 NET "test<3>"  LOC = "p42"  ; 
 NET "test<4>"  LOC = "p41"  ; 
+NET "test<5>"  LOC = "p33"  ;
+NET "test<6>"  LOC = "p32"  ;
+NET "test<7>"  LOC = "p28"  ;
+NET "test<8>"  LOC = "p27"  ;
 
 #PACE: Start of PACE Area Constraints
 
