@@ -19,22 +19,24 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module UltiMem64(
-                input [7:0]maddress,
-                inout [7:0]data,
-                input _ras,
-                input _cas,
-                input _we,
-                output [20:0]baddress,
-                inout [7:0]bdata,
-                output _ce_ram,
-                output _ce_tag,
-                output _we_ram,
-                output _ub,
-                output _lb,
-                output [8:1]test
-               );
+                 input clock,
+                 input [7:0]maddress,
+                 inout [7:0]data,
+                 input _ras,
+                 input _cas,
+                 input _we,
+                 output reg [20:0]baddress,
+                 inout [7:0]bdata,
+                 output _ce_ram,
+                 output _ce_tag,
+                 output _we_ram,
+                 output _ub,
+                 output _lb,
+                 output [8:1]test
+                );
 
 reg [7:0]address;
+reg [7:0]address_mmu;
 wire [15:0]faddress;
 wire [7:0]data_task_win;
 wire [7:0]data_task;
@@ -47,16 +49,17 @@ wire ce_mmu_map;
 wire we;
 wire oe;
 wire flag_mmu_enabled;
-wire clock;
+wire bus_active;
+reg [3:0]ctr;
 
-assign test[1] =           (!_ras & !_cas);
-assign test[2] =           !_we & (faddress == 49152);
-assign test[3] =           flag_mmu_enabled;
-assign test[4] =           0;
-assign test[5] =           0;
-assign test[6] =           0;
-assign test[7] =           0;
-assign test[8] =           0;
+assign test[1] =           bus_active;
+assign test[2] =           !_ce_tag;
+assign test[3] =           !_ce_ram;
+assign test[4] =           !_we_ram;
+assign test[5] =           address_mmu[0];
+assign test[6] =           address_mmu[1];
+assign test[7] =           address_mmu[2];
+assign test[8] =           address_mmu[3];
 
 assign faddress =          {maddress, address};
 assign ce_mmu_regs =       (faddress[15:4] == 12'hc00);
@@ -66,20 +69,19 @@ assign ce_mmu_task =       ce_mmu_regs & (faddress[3:0] == 2);
 assign ce_mmu_map =        (faddress[15:4] == 12'hc01);
 assign we =                !_we;
 assign oe =                _we;
-assign clock =             !_ras & !_cas;
+assign bus_active =        !_ras & !_cas;
 
-assign _ce_ram =           !(clock & !ce_mmu_map);
-assign _ce_tag =           !(clock & ce_mmu_map);
-assign _we_ram =           _we;
-assign baddress[20:0] =    (!_ce_ram ? {5'b0, faddress} : {9'b0, data_task_win, faddress[3:0]});
+assign _ce_ram =           !(bus_active & !ce_mmu_map & (ctr >= 2));
+assign _ce_tag =           !(bus_active & ((ctr < 2) | (ctr >= 2) & ce_mmu_map));
+assign _we_ram =           !(!_we & (ctr >=2));    // no writing until after tag ram has been accessed.
 assign bdata =             ((!_ce_ram | !_ce_tag) & !_we_ram ? data : 8'bz);  // RAM selected and we're writing, else bz
 assign data =              data_out;  // RAM selected and we're reading, else bz
 assign _ub =               1;
 assign _lb =               _ce_tag;
 
-register #(.WIDTH(1))				mmu_enabled_reg(clock, 0, we & ce_mmu_ctrl, data[0], flag_mmu_enabled);
-register #(.WIDTH(8))				mmu_win_reg(clock, 0, we & ce_mmu_task_conf, data, data_task_win);
-register #(.WIDTH(8))				mmu_task_reg(clock, 0, we & ce_mmu_task, data, data_task);
+register #(.WIDTH(1))		mmu_enabled_reg(bus_active, 0, we & ce_mmu_ctrl, data[0], flag_mmu_enabled);
+register #(.WIDTH(8))		mmu_win_reg(bus_active, 0, we & ce_mmu_task_conf, data, data_task_win);
+register #(.WIDTH(8))		mmu_task_reg(bus_active, 0, we & ce_mmu_task, data, data_task);
 
 always @(*)
 begin
@@ -95,6 +97,31 @@ begin
       data_out = bdata;
    else
       data_out = 8'bz;
+end
+
+always @(*)
+begin
+   if(!_ce_ram & flag_mmu_enabled)
+      baddress = {1'b0, address_mmu, faddress[11:0]};
+   else if(!_ce_ram & !flag_mmu_enabled)
+      baddress = {5'b0, faddress};
+   else if(!_ce_tag & ce_mmu_map)
+      baddress = {9'b0, data_task_win, faddress[3:0]};
+   else
+      baddress = {9'b0, data_task, faddress[15:12]};
+end
+
+always @(posedge clock)
+begin
+   if(!bus_active)
+      ctr <= 0;
+   else
+      ctr <= ctr + 1;
+end
+
+always @(posedge _ce_tag)
+begin
+   address_mmu <= bdata;
 end
 
 always @(negedge _ras)
