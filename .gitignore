@@ -165,17 +165,21 @@ pip-log.txt
 #SVN
 .svn
 
-#Project Stuff
-.dep
-obj-*
+#Xilinx ISE WebPack
 *.xmsgs
-/hdl/*.err
-/pcb/*.lck
-/hdl/iseconfig/*.filter
 *.tim
 *.tspec
-archive
-*.err
 _xmsgs
+/hdl/*.err
 /hdl/iseconfig
 /hdl/_pace.ucf
+
+#EAGLE CAD
+/pcb/*.lck
+
+#GCC
+.dep
+obj-*
+
+#Project Stuff
+archive
