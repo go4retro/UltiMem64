@@ -20,7 +20,7 @@ The system starts up in "hidden" mode, where the registers cannot be set or read
 - $C055
 - $C0FF
 - $C000
-- $CO<PAGE>, where <page> is the high byte of the location where the registers should appear ($FF would place the registers at $ff00-)
+- $CO&lt;PAGE&gt;, where &lt;page&gt; is the high byte of the location where the registers should appear ($FF would place the registers at $ff00-)
 
 Once the registers are visible, the are as follows:
 
